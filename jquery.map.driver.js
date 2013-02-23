@@ -1,5 +1,5 @@
-function Driver(map_container){
-    this.map_container = map_container;
+function Driver(container){
+    this.map_container = container;
 };
 
 Driver.prototype = {
@@ -28,8 +28,8 @@ Driver.prototype = {
     }
 };
 
-Driver.Google = function(map_container){
-    this.map_container = map_container;
+Driver.Google = function(container){
+    Driver.call(this, container);
 };
 
 Driver.Google.prototype = Driver;

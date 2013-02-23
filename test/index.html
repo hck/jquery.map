@@ -1,0 +1,30 @@
+<html>
+<head>
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?sensor=true"></script>
+  <script type="text/javascript" src="../jquery.map.js"></script>
+  <script type="text/javascript" src="../jquery.map.driver.js"></script>
+  <script type="text/javascript">
+      $(function(){
+          map = $('#map').map('Google');
+
+          map.addMarker({
+              options: {
+                  position: {
+                      lat: 50.4095379,
+                      lng: 30.624283
+                  },
+                  title: 'test marker'
+              },
+              events: {
+                  click: function(){
+                      alert('"' + this.title + '" was clicked');
+                  }
+              }
+          });
+      });
+  </script>
+</head>
+<body>
+  <div id="map" style="margin: 0 auto; width: 300px; height: 300px;"></div>
+</body>
