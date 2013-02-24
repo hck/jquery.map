@@ -90,17 +90,16 @@
             this.driver = new Driver[driver_class](this);
             this.map_layer = this.driver.createMap(obj.get(0), options.map);
 
+            this.geolocation(function(position){
+                that.driver.setMapCenter(position.coords.latitude, position.coords.longitude);
+            });
+
             if (options.markers) {
                 for(key in options.markers)
                     this.driver.addMarker(options.markers[key]);
             }
 
             this.fitToMarkers();
-
-            this.geolocation(function(position){
-                var position = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
-                that.driver.setMapCenter(position);
-            });
 
             // add map events
             for(key in options.events) {

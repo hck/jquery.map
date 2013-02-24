@@ -1,12 +1,23 @@
 <html>
 <head>
   <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-  <script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?sensor=true"></script>
+
+  <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.5.1/leaflet.css" />
+  <script src="http://cdn.leafletjs.com/leaflet-0.5.1/leaflet.js"></script>
+
   <script type="text/javascript" src="../jquery.map.js"></script>
   <script type="text/javascript" src="../jquery.map.driver.js"></script>
+  <script type="text/javascript" src="../drivers/leaflet.js"></script>
   <script type="text/javascript">
       $(function(){
-          map = $('#map').map('Google');
+          map = $('#map').map(
+              'Leaflet',
+              {
+                  map: {
+                      api_key: 'YOUR API KEY HERE'
+                  }
+              }
+          );
 
           map.addMarker({
               options: {
