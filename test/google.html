@@ -3,25 +3,28 @@
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
     <script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?sensor=true"></script>
     <script type="text/javascript" src="../jquery.map.js"></script>
-    <script type="text/javascript" src="../jquery.map.driver.js"></script>
     <script type="text/javascript" src="../drivers/google.js"></script>
     <script type="text/javascript">
         $(function(){
-            map = $('#map').map('Google');
-
-            map.addMarker({
-                options: {
-                    position: {
-                        lat: 50.4095379,
-                        lng: 30.624283
-                    },
-                    title: 'test marker'
-                },
-                events: {
-                    click: function(){
-                        alert('"' + this.title + '" was clicked');
+            map = $('#map').map('Google', {
+                markers: [
+                    {
+                        options: {
+                            position: {
+                                lat: 50.4095379,
+                                lng: 30.624283
+                            },
+                            title: 'test marker'
+                        },
+                        events: {
+                            click: function(){
+                                var marker = new map.driver.MarkerWrapper(this);
+                                alert('"' + marker.getTitle() + '" was clicked');
+                            }
+                        }
                     }
-                }
+                ],
+                drivers_url: '../drivers'
             });
         });
     </script>

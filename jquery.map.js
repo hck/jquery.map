@@ -7,8 +7,7 @@
 
             var default_options = {
                 options: {
-                    map: that.map_layer,
-                    key: that.markers.length
+                    map: that.map_layer
                 }
             };
             var marker_options = $.extend(default_options, options.options);
@@ -87,31 +86,66 @@
             this.markers = [];
             this.eventListeners = {};
 
-            this.driver = new Driver[driver_class](this);
-            this.map_layer = this.driver.createMap(obj.get(0), options.map);
+            //this.driver = new $.fn.map.Driver[driver_class](this);
+            //this.map_layer = this.driver.createMap(obj.get(0), options.map);
 
-            this.geolocation(function(position){
-                that.driver.setMapCenter(position.coords.latitude, position.coords.longitude);
-            });
+            $.getScript((options['drivers_url'] || 'drivers') + '/' + driver_class.toLowerCase() + '.js', function(){
+                that.driver = new $.fn.map.Driver[driver_class](that);
+                that.map_layer = that.driver.createMap(obj.get(0), options.map);
 
-            if (options.markers) {
-                for(key in options.markers)
-                    this.driver.addMarker(options.markers[key]);
-            }
+                that.geolocation(function(position){
+                    that.driver.setMapCenter(position.coords.latitude, position.coords.longitude);
+                });
 
-            this.fitToMarkers();
+                if (options.markers) {
+                    for(var key in options.markers)
+                        that.addMarker(options.markers[key]);
+                }
 
-            // add map events
-            for(key in options.events) {
-                if (typeof(options.events[key]) != 'function') continue;
-                this.addEventListener(key, options.events[key]);
-            }
-
-            $(window).resize(function(){
                 that.fitToMarkers();
+
+                // add map events
+                for(var key in options.events) {
+                    if (typeof(options.events[key]) != 'function') continue;
+                    that.addEventListener(key, options.events[key]);
+                }
+
+                $(window).resize(function(){
+                    that.fitToMarkers();
+                });
             });
         }
 
         return this;
+    };
+
+    $.fn.map.Driver = function(container){
+        this.map_container = container;
+    };
+
+    $.fn.map.Driver.prototype = {
+        map_container: null,
+
+        createMap: function(){
+            throw new Error("should be implemented in map provider driver");
+        },
+        createMarker: function(options){
+            throw new Error("should be implemented in map provider driver");
+        },
+        deleteMarker: function(marker){
+            throw new Error("should be implemented in map provider driver");
+        },
+        toggleMarker: function(marker, visible){
+            throw new Error("should be implemented in map provider driver");
+        },
+        addEventListener: function(instance, eventName, handler) {
+            throw new Error("should be implemented in map provider driver");
+        },
+        setMapCenter: function(position){
+            throw new Error("should be implemented in map provider driver");
+        },
+        fitMapToMarkers: function(markers){
+            throw new Error("should be implemented in map provider driver");
+        }
     };
 })(jQuery);
