@@ -17,7 +17,6 @@ Include map provider scripts (Google maps for example):
 Include necessary scripts:
 
     <script type="text/javascript" src="jquery.map.js"></script>
-    <script type="text/javascript" src="jquery.map.driver.js"></script>
 
 Init a map object:
 
@@ -73,4 +72,4 @@ Available map drivers/providers
 ===============================
 
 - Google
-
+- Leaflet
