@@ -1,7 +1,7 @@
 Overview
 ========
 
-jquery.map allows you to add map layers from different providers to your app.
+jQuery.map allows you to add map layers from different providers to your app.
 
 How to use
 ==========
@@ -10,11 +10,11 @@ Include jQuery (not bundled within this repo):
 
     <script type="text/javascript" src="jquery.js"></script>
 
-Include map provider scripts (Google maps for example):
+Include map provider API scripts (Google maps for example):
 
     <script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&sensor=SET_TO_TRUE_OR_FALSE"></script>
 
-Include necessary scripts:
+Include jQuery.map script:
 
     <script type="text/javascript" src="jquery.map.js"></script>
 

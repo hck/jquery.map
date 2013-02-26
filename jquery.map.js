@@ -86,33 +86,28 @@
             this.markers = [];
             this.eventListeners = {};
 
-            //this.driver = new $.fn.map.Driver[driver_class](this);
-            //this.map_layer = this.driver.createMap(obj.get(0), options.map);
+            that.driver = new $.fn.map.Driver[driver_class](that);
+            that.map_layer = that.driver.createMap(obj.get(0), options.map);
 
-            $.getScript((options['drivers_url'] || 'drivers') + '/' + driver_class.toLowerCase() + '.js', function(){
-                that.driver = new $.fn.map.Driver[driver_class](that);
-                that.map_layer = that.driver.createMap(obj.get(0), options.map);
+            that.geolocation(function(position){
+                that.driver.setMapCenter(position.coords.latitude, position.coords.longitude);
+            });
 
-                that.geolocation(function(position){
-                    that.driver.setMapCenter(position.coords.latitude, position.coords.longitude);
-                });
+            if (options.markers) {
+                for(var key in options.markers)
+                    that.addMarker(options.markers[key]);
+            }
 
-                if (options.markers) {
-                    for(var key in options.markers)
-                        that.addMarker(options.markers[key]);
-                }
+            that.fitToMarkers();
 
+            // add map events
+            for(var key in options.events) {
+                if (typeof(options.events[key]) != 'function') continue;
+                that.addEventListener(key, options.events[key]);
+            }
+
+            $(window).resize(function(){
                 that.fitToMarkers();
-
-                // add map events
-                for(var key in options.events) {
-                    if (typeof(options.events[key]) != 'function') continue;
-                    that.addEventListener(key, options.events[key]);
-                }
-
-                $(window).resize(function(){
-                    that.fitToMarkers();
-                });
             });
         }
 
@@ -147,5 +142,154 @@
         fitMapToMarkers: function(markers){
             throw new Error("should be implemented in map provider driver");
         }
+    };
+
+    $.fn.map.Driver.Google = function(container){
+        $.fn.map.Driver.call(this, container);
+
+        try{
+            google && google.maps
+        }catch(e){
+            throw "Load Google Maps API first"
+        }
+
+        $.fn.map.Driver.Google.prototype.createMap = function(element, options){
+            var defaults = {
+                zoom: 15,
+                mapTypeId: google.maps.MapTypeId.ROADMAP
+            };
+            return new google.maps.Map(element, $.extend(defaults, options));
+        };
+
+        $.fn.map.Driver.Google.prototype.createMarker = function(options){
+            options.position = new google.maps.LatLng(options.position.lat, options.position.lng);
+            return new google.maps.Marker(options);
+        };
+
+        $.fn.map.Driver.Google.prototype.deleteMarker = function(marker){
+            marker.setMap(null);
+        };
+
+        $.fn.map.Driver.Google.prototype.toggleMarker = function(marker, visible){
+            if (visible === undefined)
+                visible = !marker.getVisible();
+
+            marker.setVisible(visible);
+        };
+
+        $.fn.map.Driver.Google.prototype.addEventListener = function(instance, name, handler){
+            google.maps.event.addListener(instance, name, handler);
+        }
+
+        $.fn.map.Driver.Google.prototype.setMapCenter = function(lat, lng){
+            var position = new google.maps.LatLng(lat, lng);
+            return this.map_container.map_layer.setCenter(position);
+        };
+
+        $.fn.map.Driver.Google.prototype.fitMapToMarkers = function(markers){
+            if (markers.length == 0) return false;
+
+            if(markers.length == 1)
+                return this.setMapCenter(markers[0].position.lat(), markers[0].position.lng());
+
+            var bounds = new google.maps.LatLngBounds();
+            for(var i in markers)
+                bounds.extend(markers[i].position);
+
+            return this.map_container.map_layer.fitBounds(bounds);
+        };
+    };
+
+    $.fn.map.Driver.Google.prototype = $.fn.map.Driver;
+
+    // Google MarkerWrapper
+    $.fn.map.Driver.Google.prototype.MarkerWrapper = function(marker){
+        this.marker = marker;
+        var that = this;
+
+        this.getTitle = function(){
+            return that.marker.title;
+        };
+    };
+
+    $.fn.map.Driver.Leaflet = function(container){
+        $.fn.map.Driver.call(this, container);
+
+        try {
+            L && L.map
+        } catch(e) {
+            throw new Error('Load Leaflet API first');
+        }
+
+        $.fn.map.Driver.Leaflet.prototype.mapDefaults = {
+            zoom: 15
+        };
+
+        $.fn.map.Driver.Leaflet.prototype.createMap = function(element, options){
+            //var tile_layer = L.tileLayer('http://{s}.tile.cloudmade.com/{key}/{styleId}/256/{z}/{x}/{y}.png', {
+            var tile_layer = L.tileLayer(options['url'] || 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                key: options['api_key'],
+                styleId: 997
+            });
+
+            var defaults = this.mapDefaults;
+            defaults.layers = [tile_layer];
+
+            return L.map(element, $.extend(defaults, options));
+        };
+
+        $.fn.map.Driver.Leaflet.prototype.createMarker = function(options){
+            var position = new L.LatLng(options.position.lat, options.position.lng);
+            return L.marker(position, options).addTo(this.map_container.map_layer);
+        };
+
+        $.fn.map.Driver.Leaflet.prototype.deleteMarker = function(marker){
+            marker.remove();
+        };
+
+        $.fn.map.Driver.Leaflet.prototype.toggleMarker = function(marker, visible){
+            if (visible === undefined)
+                visible = marker.opacity == 1;
+
+            marker.opacity = visible ? 1.0 : 0.0;
+        };
+
+        $.fn.map.Driver.Leaflet.prototype.addEventListener = function(instance, name, handler){
+            instance.on(name, handler);
+        }
+
+        $.fn.map.Driver.Leaflet.prototype.setMapCenter = function(lat, lng){
+            var position = new L.LatLng(lat, lng);
+            var map = this.map_container.map_layer;
+
+            map.setView(position, map.getZoom() || this.mapDefaults.zoom);
+        };
+
+        $.fn.map.Driver.Leaflet.prototype.fitMapToMarkers = function(markers){
+            if (markers.length == 0) return false;
+
+            if(markers.length == 1){
+                var pos = markers[0].getLatLng();
+                return this.setMapCenter(pos.lat, pos.lng);
+            }
+
+            var bounds = new L.LatLngBounds();
+            for(var i in markers)
+                bounds.extend(markers[i].getLatLng());
+
+            return this.map_container.map_layer.fitBounds(bounds);
+        };
+    }
+
+    $.fn.map.Driver.Leaflet.prototype = $.fn.map.Driver;
+
+    // Leaflet MarkerWrapper
+    $.fn.map.Driver.Leaflet.prototype.MarkerWrapper = function(marker){
+        this.marker = marker;
+        var that = this;
+
+        this.getTitle = function(){
+            return that.marker.options.title;
+        };
     };
 })(jQuery);
