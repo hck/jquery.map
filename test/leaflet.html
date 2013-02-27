@@ -25,12 +25,17 @@
                           },
                           events: {
                               click: function(){
-                                  var marker = new map.driver.MarkerWrapper(this);
-                                  alert('"' + marker.getTitle() + '" was clicked');
+                                  //var marker = new map.driver.MarkerWrapper(this);
+                                  alert('"' + this.getTitle() + '" was clicked');
                               }
                           }
                       }
                   ],
+                  events: {
+                      click: function(){
+                          console.log(this, typeof(this));
+                      }
+                  },
                   drivers_url: '../drivers'
               }
           );

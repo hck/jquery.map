@@ -17,8 +17,7 @@
                         },
                         events: {
                             click: function(){
-                                var marker = new map.driver.MarkerWrapper(this);
-                                alert('"' + marker.getTitle() + '" was clicked');
+                                alert('"' + this.getTitle() + '" was clicked');
                             }
                         }
                     }

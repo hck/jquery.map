@@ -65,7 +65,7 @@
                 that.eventListeners[event] = []
 
             var handler = this.driver.addEventListener(that.map_layer, event, handler);
-            that.event_listeners[event].push(handler);
+            that.eventListeners[event].push(handler);
         }
 
         this.geolocation = function(success, fail) {
@@ -78,7 +78,7 @@
 
         // init map
         if (!this.map_layer) {
-            obj = $(this).eq(0);
+            var obj = $(this).eq(0);
 
             options = options ? options : {}
 
@@ -144,6 +144,7 @@
         }
     };
 
+    // Google Driver
     $.fn.map.Driver.Google = function(container){
         $.fn.map.Driver.call(this, container);
 
@@ -178,7 +179,12 @@
         };
 
         $.fn.map.Driver.Google.prototype.addEventListener = function(instance, name, handler){
-            google.maps.event.addListener(instance, name, handler);
+            google.maps.event.addListener(instance, name, function(){
+                if (typeof(this) == 'google.maps.Marker')
+                    handler.apply(new $.fn.map.Driver.Google.MarkerWrapper(this));
+                else
+                    handler.apply(this);
+            });
         }
 
         $.fn.map.Driver.Google.prototype.setMapCenter = function(lat, lng){
@@ -203,15 +209,15 @@
     $.fn.map.Driver.Google.prototype = $.fn.map.Driver;
 
     // Google MarkerWrapper
-    $.fn.map.Driver.Google.prototype.MarkerWrapper = function(marker){
+    $.fn.map.Driver.Google.MarkerWrapper = function(marker){
         this.marker = marker;
-        var that = this;
 
         this.getTitle = function(){
-            return that.marker.title;
+            return this.marker.title;
         };
     };
 
+    // Leaflet Driver
     $.fn.map.Driver.Leaflet = function(container){
         $.fn.map.Driver.call(this, container);
 
@@ -240,7 +246,7 @@
 
         $.fn.map.Driver.Leaflet.prototype.createMarker = function(options){
             var position = new L.LatLng(options.position.lat, options.position.lng);
-            return L.marker(position, options).addTo(this.map_container.map_layer);
+            return new L.Marker(position, options).addTo(this.map_container.map_layer);
         };
 
         $.fn.map.Driver.Leaflet.prototype.deleteMarker = function(marker){
@@ -249,13 +255,18 @@
 
         $.fn.map.Driver.Leaflet.prototype.toggleMarker = function(marker, visible){
             if (visible === undefined)
-                visible = marker.opacity == 1;
+                visible = marker.options.opacity != 1;
 
-            marker.opacity = visible ? 1.0 : 0.0;
+            marker.setOpacity(visible ? 1.0 : 0.0);
         };
 
         $.fn.map.Driver.Leaflet.prototype.addEventListener = function(instance, name, handler){
-            instance.on(name, handler);
+            instance.on(name, function(){
+                if (this.hasOwnProperty('_map'))
+                    handler.apply(new $.fn.map.Driver.Leaflet.MarkerWrapper(this));
+                else
+                    handler.apply(this);
+            });
         }
 
         $.fn.map.Driver.Leaflet.prototype.setMapCenter = function(lat, lng){
@@ -284,12 +295,11 @@
     $.fn.map.Driver.Leaflet.prototype = $.fn.map.Driver;
 
     // Leaflet MarkerWrapper
-    $.fn.map.Driver.Leaflet.prototype.MarkerWrapper = function(marker){
+    $.fn.map.Driver.Leaflet.MarkerWrapper = function(marker){
         this.marker = marker;
-        var that = this;
 
         this.getTitle = function(){
-            return that.marker.options.title;
+            return this.marker.options.title;
         };
     };
 })(jQuery);
